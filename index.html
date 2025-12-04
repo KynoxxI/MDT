@@ -3,11 +3,13 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>MDT RP — Démo</title>
+  <title>LSPD Mobile Data Terminal</title>
   <link rel="stylesheet" href="styles.css"/>
+  <meta name="color-scheme" content="dark light">
 </head>
 <body>
   <div id="app">
+    <!-- Barre latérale -->
     <aside class="sidebar">
       <div class="brand">
         <span class="brand-badge">LSPD</span>
@@ -34,6 +36,7 @@
       </div>
     </aside>
 
+    <!-- Contenu principal -->
     <main class="main">
       <header class="topbar">
         <div class="search">
@@ -44,10 +47,12 @@
           <button id="quick-create" class="primary">+ Nouveau rapport</button>
         </div>
       </header>
+
       <section id="view" class="view"></section>
     </main>
   </div>
 
+  <!-- Modale générique -->
   <div id="modal" class="modal hidden">
     <div class="modal-content">
       <div class="modal-header">
@@ -63,9 +68,22 @@
     <div class="modal-backdrop"></div>
   </div>
 
+  <!-- Écran de connexion -->
   <div id="login-screen" class="login-screen">
     <form id="login-form" class="login-card">
       <h2>Connexion MDT</h2>
+
+      <div class="card" style="padding: 0; border: none; background: transparent;">
+        <p class="hint">Connexion recommandée via Discord (OAuth2)</p>
+        <a id="discord-login-link" href="#" rel="noopener">
+          <button type="button" class="primary" style="width: 100%;">Connexion via Discord</button>
+        </a>
+        <p id="discord-status" class="hint" style="margin-top: 8px;">Statut: En attente</p>
+      </div>
+
+      <hr style="border: none; border-top: 1px solid #263042; margin: 12px 0;"/>
+
+      <p class="hint">Mode démo (local): n’importe quel identifiant/mot de passe est accepté.</p>
       <label>Identifiant
         <input name="username" required placeholder="ex: j.doe"/>
       </label>
@@ -81,9 +99,36 @@
         </select>
       </label>
       <button type="submit" class="primary">Se connecter</button>
-      <p class="hint">Démo : n’importe quel identifiant/mot de passe est accepté.</p>
     </form>
   </div>
+
+  <!-- Configuration OAuth Discord côté front (l’appel du token nécessite un backend) -->
+  <script>
+    // Tes identifiants Discord
+    const DISCORD_CLIENT_ID = '1358102682904166490';
+    const REDIRECT_URI = 'https://kynoxxi.github.io/MDT/'; // doit correspondre au Developer Portal
+
+    // Construire l’URL d’autorisation OAuth2
+    const oauthAuthorizeURL = new URL('https://discord.com/oauth2/authorize');
+    oauthAuthorizeURL.searchParams.set('client_id', DISCORD_CLIENT_ID);
+    oauthAuthorizeURL.searchParams.set('redirect_uri', REDIRECT_URI);
+    oauthAuthorizeURL.searchParams.set('response_type', 'code');
+    oauthAuthorizeURL.searchParams.set('scope', 'identify');
+
+    // Injecter l’URL dans le bouton
+    const discordLink = document.getElementById('discord-login-link');
+    discordLink.href = oauthAuthorizeURL.toString();
+
+    // Afficher le statut si ?code= présent (Discord a redirigé)
+    const params = new URLSearchParams(location.search);
+    const code = params.get('code');
+    const discordStatus = document.getElementById('discord-status');
+    if (code) {
+      discordStatus.textContent = 'Statut: Code reçu de Discord ✔ — échange de code à implémenter côté serveur';
+      // Note: Ici il faut un backend pour échanger "code" contre "access_token".
+      // Ensuite, le backend renvoie les infos utilisateur (username, id) au frontend.
+    }
+  </script>
 
   <script src="app.js"></script>
 </body>
