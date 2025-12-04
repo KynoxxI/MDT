@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>LSPD Mobile Data Terminal</title>
   <link rel="stylesheet" href="styles.css"/>
+  <meta name="color-scheme" content="dark">
 </head>
 <body>
   <div id="app">
@@ -21,12 +22,12 @@
         <button data-route="cases" class="nav-item">Dossiers</button>
         <button data-route="warrants" class="nav-item">Mandats</button>
         <button data-route="reports" class="nav-item">Rapports</button>
-        <button data-route="dispatch" class="nav-item">Dispatch</button>
+        <button data-route="dispatch" class="nav-item">Dispatch</button> <!-- AJOUT -->
         <button data-route="admin" class="nav-item role-admin">Administration</button>
       </nav>
       <div class="sidebar-bottom">
         <div class="user-info">
-          <div class="avatar">👮</div>
+          <div class="avatar" id="user-avatar">👮</div>
           <div>
             <div id="user-name">Invité</div>
             <div id="user-role" class="role">—</div>
@@ -47,11 +48,12 @@
           <button id="quick-create" class="primary">+ Nouveau rapport</button>
         </div>
       </header>
+
       <section id="view" class="view"></section>
     </main>
   </div>
 
-  <!-- Modale -->
+  <!-- Modale générique -->
   <div id="modal" class="modal hidden">
     <div class="modal-content">
       <div class="modal-header">
@@ -71,7 +73,18 @@
   <div id="login-screen" class="login-screen">
     <form id="login-form" class="login-card">
       <h2>Connexion MDT</h2>
-      <p class="hint">Mode démo : n’importe quel identifiant/mot de passe est accepté.</p>
+
+      <div class="card soft">
+        <p class="hint">Connexion recommandée via Discord (OAuth2)</p>
+        <a id="discord-login-link" href="#" rel="noopener">
+          <button type="button" class="primary" style="width: 100%;">Connexion via Discord</button>
+        </a>
+        <p id="discord-status" class="hint" style="margin-top: 8px;">Statut: En attente</p>
+      </div>
+
+      <div class="divider"></div>
+
+      <p class="hint">Mode démo (local) — n’importe quel identifiant/mot de passe est accepté.</p>
       <label>Identifiant
         <input name="username" required placeholder="ex: j.doe"/>
       </label>
@@ -89,6 +102,165 @@
       <button type="submit" class="primary">Se connecter</button>
     </form>
   </div>
+
+  <!-- Config OAuth Discord côté front -->
+  <script>
+    const DISCORD_CLIENT_ID = '1445998594955022408';
+    const REDIRECT_URI = 'https://kynoxxi.github.io/MDT/';
+
+    const oauthAuthorizeURL = new URL('https://discord.com/oauth2/authorize');
+    oauthAuthorizeURL.searchParams.set('client_id', DISCORD_CLIENT_ID);
+    oauthAuthorizeURL.searchParams.set('redirect_uri', REDIRECT_URI);
+    oauthAuthorizeURL.searchParams.set('response_type', 'code');
+    oauthAuthorizeURL.searchParams.set('scope', 'identify');
+
+    const discordLink = document.getElementById('discord-login-link');
+    discordLink.href = oauthAuthorizeURL.toString();
+
+    const params = new URLSearchParams(location.search);
+    const code = params.get('code');
+    const discordStatus = document.getElementById('discord-status');
+    if (discordStatus) {
+      if (code) {
+        discordStatus.textContent = 'Statut: Code reçu de Discord ✔ — échange à implémenter côté serveur';
+      } else {
+        discordStatus.textContent = 'Statut: En attente — clique sur “Connexion via Discord”';
+      }
+    }
+  </script>
+
+  <script src="app.js"></script>
+</body>
+</html><!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>LSPD Mobile Data Terminal</title>
+  <link rel="stylesheet" href="styles.css"/>
+  <meta name="color-scheme" content="dark">
+</head>
+<body>
+  <div id="app">
+    <!-- Barre latérale -->
+    <aside class="sidebar">
+      <div class="brand">
+        <span class="brand-badge">LSPD</span>
+        <span class="brand-title">Mobile Data Terminal</span>
+      </div>
+      <nav class="nav">
+        <button data-route="dashboard" class="nav-item active">Dashboard</button>
+        <button data-route="citizens" class="nav-item">Citoyens</button>
+        <button data-route="vehicles" class="nav-item">Véhicules</button>
+        <button data-route="cases" class="nav-item">Dossiers</button>
+        <button data-route="warrants" class="nav-item">Mandats</button>
+        <button data-route="reports" class="nav-item">Rapports</button>
+        <button data-route="dispatch" class="nav-item">Dispatch</button> <!-- AJOUT -->
+        <button data-route="admin" class="nav-item role-admin">Administration</button>
+      </nav>
+      <div class="sidebar-bottom">
+        <div class="user-info">
+          <div class="avatar" id="user-avatar">👮</div>
+          <div>
+            <div id="user-name">Invité</div>
+            <div id="user-role" class="role">—</div>
+          </div>
+        </div>
+        <button id="logout" class="logout">Déconnexion</button>
+      </div>
+    </aside>
+
+    <!-- Contenu principal -->
+    <main class="main">
+      <header class="topbar">
+        <div class="search">
+          <input id="global-search" type="text" placeholder="Recherche globale…"/>
+          <button id="search-btn">Rechercher</button>
+        </div>
+        <div class="top-actions">
+          <button id="quick-create" class="primary">+ Nouveau rapport</button>
+        </div>
+      </header>
+
+      <section id="view" class="view"></section>
+    </main>
+  </div>
+
+  <!-- Modale générique -->
+  <div id="modal" class="modal hidden">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="modal-title">Titre</h3>
+        <button id="modal-close" class="icon">✕</button>
+      </div>
+      <div id="modal-body" class="modal-body"></div>
+      <div class="modal-footer">
+        <button id="modal-cancel">Annuler</button>
+        <button id="modal-confirm" class="primary">Confirmer</button>
+      </div>
+    </div>
+    <div class="modal-backdrop"></div>
+  </div>
+
+  <!-- Écran de connexion -->
+  <div id="login-screen" class="login-screen">
+    <form id="login-form" class="login-card">
+      <h2>Connexion MDT</h2>
+
+      <div class="card soft">
+        <p class="hint">Connexion recommandée via Discord (OAuth2)</p>
+        <a id="discord-login-link" href="#" rel="noopener">
+          <button type="button" class="primary" style="width: 100%;">Connexion via Discord</button>
+        </a>
+        <p id="discord-status" class="hint" style="margin-top: 8px;">Statut: En attente</p>
+      </div>
+
+      <div class="divider"></div>
+
+      <p class="hint">Mode démo (local) — n’importe quel identifiant/mot de passe est accepté.</p>
+      <label>Identifiant
+        <input name="username" required placeholder="ex: j.doe"/>
+      </label>
+      <label>Mot de passe
+        <input name="password" type="password" required placeholder="••••••"/>
+      </label>
+      <label>Rôle
+        <select name="role">
+          <option value="officer">Agent</option>
+          <option value="sergeant">Sergent</option>
+          <option value="detective">Détective</option>
+          <option value="admin">Administrateur</option>
+        </select>
+      </label>
+      <button type="submit" class="primary">Se connecter</button>
+    </form>
+  </div>
+
+  <!-- Config OAuth Discord côté front -->
+  <script>
+    const DISCORD_CLIENT_ID = '1445998594955022408';
+    const REDIRECT_URI = 'https://kynoxxi.github.io/MDT/';
+
+    const oauthAuthorizeURL = new URL('https://discord.com/oauth2/authorize');
+    oauthAuthorizeURL.searchParams.set('client_id', DISCORD_CLIENT_ID);
+    oauthAuthorizeURL.searchParams.set('redirect_uri', REDIRECT_URI);
+    oauthAuthorizeURL.searchParams.set('response_type', 'code');
+    oauthAuthorizeURL.searchParams.set('scope', 'identify');
+
+    const discordLink = document.getElementById('discord-login-link');
+    discordLink.href = oauthAuthorizeURL.toString();
+
+    const params = new URLSearchParams(location.search);
+    const code = params.get('code');
+    const discordStatus = document.getElementById('discord-status');
+    if (discordStatus) {
+      if (code) {
+        discordStatus.textContent = 'Statut: Code reçu de Discord ✔ — échange à implémenter côté serveur';
+      } else {
+        discordStatus.textContent = 'Statut: En attente — clique sur “Connexion via Discord”';
+      }
+    }
+  </script>
 
   <script src="app.js"></script>
 </body>
