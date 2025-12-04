@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>MDT RP — Démo</title>
+  <link rel="stylesheet" href="styles.css"/>
+</head>
+<body>
+  <div id="app">
+    <aside class="sidebar">
+      <div class="brand">
+        <span class="brand-badge">LSPD</span>
+        <span class="brand-title">Mobile Data Terminal</span>
+      </div>
+      <nav class="nav">
+        <button data-route="dashboard" class="nav-item">Dashboard</button>
+        <button data-route="citizens" class="nav-item">Citoyens</button>
+        <button data-route="vehicles" class="nav-item">Véhicules</button>
+        <button data-route="cases" class="nav-item">Dossiers</button>
+        <button data-route="warrants" class="nav-item">Mandats</button>
+        <button data-route="reports" class="nav-item">Rapports</button>
+        <button data-route="admin" class="nav-item role-admin">Administration</button>
+      </nav>
+      <div class="sidebar-bottom">
+        <div class="user-info">
+          <div class="avatar">👮</div>
+          <div>
+            <div id="user-name">Invité</div>
+            <div id="user-role" class="role">—</div>
+          </div>
+        </div>
+        <button id="logout" class="logout">Déconnexion</button>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div class="search">
+          <input id="global-search" type="text" placeholder="Recherche globale…"/>
+          <button id="search-btn">Rechercher</button>
+        </div>
+        <div class="top-actions">
+          <button id="quick-create" class="primary">+ Nouveau rapport</button>
+        </div>
+      </header>
+      <section id="view" class="view"></section>
+    </main>
+  </div>
+
+  <div id="modal" class="modal hidden">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="modal-title">Titre</h3>
+        <button id="modal-close" class="icon">✕</button>
+      </div>
+      <div id="modal-body" class="modal-body"></div>
+      <div class="modal-footer">
+        <button id="modal-cancel">Annuler</button>
+        <button id="modal-confirm" class="primary">Confirmer</button>
+      </div>
+    </div>
+    <div class="modal-backdrop"></div>
+  </div>
+
+  <div id="login-screen" class="login-screen">
+    <form id="login-form" class="login-card">
+      <h2>Connexion MDT</h2>
+      <label>Identifiant
+        <input name="username" required placeholder="ex: j.doe"/>
+      </label>
+      <label>Mot de passe
+        <input name="password" type="password" required placeholder="••••••"/>
+      </label>
+      <label>Rôle
+        <select name="role">
+          <option value="officer">Agent</option>
+          <option value="sergeant">Sergent</option>
+          <option value="detective">Détective</option>
+          <option value="admin">Administrateur</option>
+        </select>
+      </label>
+      <button type="submit" class="primary">Se connecter</button>
+      <p class="hint">Démo: n’importe quel couple identifiant/mot de passe est accepté.</p>
+    </form>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
