@@ -9,7 +9,24 @@ let DB = {
     { id: 'V-0001', plate: 'LSPD-001', model: 'Vapid Stanier', ownerId: 'C-0001', status: 'Actif' },
     { id: 'V-0002', plate: '4RZK572', model: 'Obey 9F', ownerId: 'C-0002', status: 'Volé' }
   ],
-  reports: []
+  reports: [],
+  dispatch: {
+    units: [
+      { id: 'A67', officer: 'John Miller', status: 'En procédure', call: 'Braquage bijouterie' },
+      { id: 'A18', officer: 'Alice Dupont', status: '10-56', call: 'Braquage bijouterie' },
+      { id: 'A04', officer: 'Marc Leroy', status: '10-98', call: 'Braquage bijouterie' },
+      { id: 'A12', officer: 'Sophie Martin', status: '10-91', call: 'Braquage bijouterie' }
+    ],
+    calls: [
+      { id: 694, desc: 'Refus d’obtempérer', details: 'Argenté beige', time: '22:06' },
+      { id: 695, desc: 'Braquage bijouterie', details: 'Rockfords Hills', time: '23:17' }
+    ],
+    agents: [
+      { role: 'Sgt 1', name: 'Tyler Lewis' },
+      { role: 'Sgt 2', name: 'Aksen Wilson' },
+      { role: 'PO 2', name: 'Nyx-Mysti Mackey' }
+    ]
+  }
 };
 
 // Helpers
@@ -117,6 +134,59 @@ function render(route) {
       </div>
     `;
   }
+
+  if (route === 'dispatch') {
+    v.innerHTML = `
+      <div class="card">
+        <h3>Centre de Dispatch</h3>
+        <div class="dispatch-grid">
+          <div class="dispatch-column">
+            <h4>Unités en patrouille</h4>
+            <ul>
+              ${DB.dispatch.units.map(u => `
+                <li class="unit-status">
+                  <span><strong>${u.id}</strong> — ${u.officer} — ${u.call}</span>
+                  <select onchange="updateUnitStatus('${u.id}', this.value)">
+                    <option ${u.status==='En procédure'?'selected':''}>En procédure</option>
+                    <option ${u.status==='10-56'?'selected':''}>10-56</option>
+                    <option ${u.status==='10-98'?'selected':''}>10-98</option>
+                    <option ${u.status==='10-91'?'selected':''}>10-91</option>
+                  </select>
+                </li>
+              `).join('')}
+            </ul>
+          </div>
+          <div class="dispatch-column">
+            <h4>Appels en cours</h4>
+            <ul>
+              ${DB.dispatch.calls.map(c => `
+                <li><strong>#${c.id}</strong> — ${c.desc} — ${c.details} — ${c.time}</li>
+              `).join('')}
+            </ul>
+          </div>
+          <div class="dispatch-column">
+            <h4>Agents en service</h4>
+            <ul>
+              ${DB.dispatch.agents.map(a => `
+                <li>${a.role} — ${a.name}</li>
+              `).join('')}
+            </ul>
+          </div>
+        </div>
+        <p class="hint">Fréquences radio : LAPD 911 MHz | LAMD 913 | GND 902 MHz</p>
+        <p class="hint">Niveau d’alerte : DEFCON 5</p>
+      </div>
+    `;
+  }
+}
+
+// Fonction pour mettre à jour le statut d’une unité
+function updateUnitStatus(unitId, newStatus) {
+  const unit = DB.dispatch.units.find(u => u.id === unitId);
+  if (unit) {
+    unit.status = newStatus;
+    render('dispatch'); // rafraîchir la vue
+  }
 }
 
 // Recherche globale
@@ -134,139 +204,4 @@ function runSearch() {
     vh.model.toLowerCase().includes(q)
   );
   const reports = DB.reports.filter(r =>
-    r.title.toLowerCase().includes(q) ||
-    r.author.toLowerCase().includes(q)
-  );
-
-  v.innerHTML = `
-    <div class="card">
-      <h3>Résultats de recherche</h3>
-      <h4>Citoyens</h4>
-      ${citizens.length ? `
-        <table class="table"><tbody>
-          ${citizens.map(c => `<tr><td>${c.id}</td><td>${c.name}</td><td>${c.dob}</td></tr>`).join('')}
-        </tbody></table>` : `<p class="hint">Aucun citoyen.</p>`}
-      <h4>Véhicules</h4>
-      ${vehicles.length ? `
-        <table class="table"><tbody>
-          ${vehicles.map(vh => `<tr><td>${vh.id}</td><td>${vh.plate}</td><td>${vh.model}</td></tr>`).join('')}
-        </tbody></table>` : `<p class="hint">Aucun véhicule.</p>`}
-      <h4>Rapports</h4>
-      ${reports.length ? `
-        <table class="table"><tbody>
-          ${reports.map(r => `<tr><td>${r.title}</td><td>${r.author}</td><td>${new Date(r.createdAt).toLocaleString()}</td></tr>`).join('')}
-        </tbody></table>` : `<p class="hint">Aucun rapport.</p>`}
-    </div>
-  `;
-}
-
-// Modale création rapport
-function openCreateReportModal() {
-  $('#modal-title').textContent = 'Nouveau rapport';
-  $('#modal-body').innerHTML = `
-    <label>Titre
-      <input id="report-title" placeholder="Ex: Intervention Bijouterie"/>
-    </label>
-    <label>Contenu
-      <textarea id="report-content" rows="6" placeholder="Décrire les faits, unités, preuves…"></textarea>
-    </label>
-  `;
-  $('#modal-confirm').onclick = () => {
-    const title = $('#report-title').value.trim();
-    const content = $('#report-content').value.trim();
-    if (!title) return;
-    DB.reports.unshift({
-      title,
-      content,
-      author: SESSION ? SESSION.username : 'Invité',
-      createdAt: Date.now()
-    });
-    closeModal();
-    render('reports');
-  };
-  showModal();
-}
-
-function showModal() {
-  $('#modal').classList.remove('hidden');
-  $('#modal-close').onclick = closeModal;
-  $('#modal-cancel').onclick = closeModal;
-}
-function closeModal() {
-  $('#modal').classList.add('hidden');
-  $('#modal-confirm').onclick = null;
-}
-
-// Login / Logout
-function applySession() {
-  updateUserUI();
-  document.getElementById('login-screen').style.display = SESSION ? 'none' : 'grid';
-  render('dashboard');
-}
-
-function setupLogin() {
-  const form = document.getElementById('login-form');
-  form.addEventListener('submit', (e) => {
-    e.preventDefault();
-    const data = Object.fromEntries(new FormData(form));
-    SESSION = {
-      username: data.username || 'Invité',
-      role: data.role || 'officer',
-      roleLabel: roleToLabel(data.role || 'officer')
-    };
-    localStorage.setItem('MDT_SESSION', JSON.stringify(SESSION));
-    applySession();
-  });
-
-  // Si un code Discord est présent, le backend doit compléter la session.
-  const params = new URLSearchParams(location.search);
-  const code = params.get('code');
-  if (code) {
-    // Placeholder: en pratique, tu appelles ton backend pour échanger le code.
-    // fetch('/api/discord/callback?code=' + code).then(...)
-    // Pour la démo, on affiche seulement le statut.
-    document.getElementById('discord-status').textContent =
-      'Statut: Code reçu de Discord ✔ — configure ton backend pour terminer la connexion';
-  }
-}
-
-function roleToLabel(role) {
-  switch (role) {
-    case 'officer': return 'Agent';
-    case 'sergeant': return 'Sergent';
-    case 'detective': return 'Détective';
-    case 'admin': return 'Administrateur';
-    default: return 'Agent';
-  }
-}
-
-// Navigation et actions
-function setupUI() {
-  document.querySelectorAll('.nav-item').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const route = btn.dataset.route;
-      render(route);
-    });
-  });
-  document.getElementById('logout').addEventListener('click', () => {
-    SESSION = null;
-    localStorage.removeItem('MDT_SESSION');
-    applySession();
-  });
-  document.getElementById('search-btn').addEventListener('click', runSearch);
-  document.getElementById('quick-create').addEventListener('click', openCreateReportModal);
-  document.getElementById('modal-close').addEventListener('click', closeModal);
-  document.getElementById('modal-cancel').addEventListener('click', closeModal);
-}
-
-// Init
-(function init() {
-  // Charger une session si présente
-  try {
-    const raw = localStorage.getItem('MDT_SESSION');
-    if (raw) SESSION = JSON.parse(raw);
-  } catch {}
-  setupUI();
-  setupLogin();
-  applySession();
-})();
+    r.title.toLower
