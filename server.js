@@ -4,7 +4,7 @@ import fetch from "node-fetch";
 import { Client, GatewayIntentBits } from "discord.js";
 import dotenv from "dotenv";
 
-dotenv.config(); // Charge les variables depuis .env
+dotenv.config();
 
 const app = express();
 
@@ -26,7 +26,6 @@ app.get("/callback", async (req, res) => {
   if (!code) return res.send("Pas de code reçu");
 
   try {
-    // Échange du code contre un token
     const tokenResponse = await fetch("https://discord.com/api/oauth2/token", {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
@@ -44,7 +43,6 @@ app.get("/callback", async (req, res) => {
       return res.status(400).json({ error: "Token non reçu", details: tokenData });
     }
 
-    // Récupération du profil utilisateur
     const userResponse = await fetch("https://discord.com/api/users/@me", {
       headers: { Authorization: `Bearer ${tokenData.access_token}` }
     });
@@ -60,7 +58,6 @@ app.get("/callback", async (req, res) => {
       console.error("Erreur envoi Discord :", err);
     }
 
-    // Réponse au frontend
     res.json(userData);
 
   } catch (err) {
@@ -69,6 +66,5 @@ app.get("/callback", async (req, res) => {
   }
 });
 
-// Lancement du serveur
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`✅ Serveur MDT lancé sur http://localhost:${PORT}`));
