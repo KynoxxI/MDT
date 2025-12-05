@@ -2,28 +2,25 @@
 import express from "express";
 import fetch from "node-fetch";
 import { Client, GatewayIntentBits } from "discord.js";
+import dotenv from "dotenv";
+
+dotenv.config(); // Charge les variables depuis .env
 
 const app = express();
 
-// =========================
-// Config OAuth2 Discord
-// =========================
-const CLIENT_ID = "1445998594955022408";
-const CLIENT_SECRET = "c_Z7CYZBRVSF0QfjJftbbIhzTXupMfUS";
-const REDIRECT_URI = "https://kynoxxi.github.io/MDT/";
+// OAuth2 Discord
+const CLIENT_ID = process.env.CLIENT_ID;
+const CLIENT_SECRET = process.env.CLIENT_SECRET;
+const REDIRECT_URI = process.env.REDIRECT_URI;
 
-// =========================
-// Config Bot Discord
-// =========================
-const BOT_TOKEN = "MTQ0NTk5ODU5NDk1NTAyMjQwOA.G3NfP8.c8tXfbfPJfWBy1vjnxrY_IQmKUB315xnWEBcnQ";
-const CHANNEL_ID = "1446588001193955388";
+// Bot Discord
+const BOT_TOKEN = process.env.BOT_TOKEN;
+const CHANNEL_ID = process.env.CHANNEL_ID;
 
 const bot = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages] });
 bot.login(BOT_TOKEN);
 
-// =========================
-// Route callback OAuth2
-// =========================
+// Route de callback OAuth2
 app.get("/callback", async (req, res) => {
   const code = req.query.code;
   if (!code) return res.send("Pas de code reçu");
@@ -44,36 +41,34 @@ app.get("/callback", async (req, res) => {
     const tokenData = await tokenResponse.json();
 
     if (!tokenData.access_token) {
-      return res.status(400).json({ error: "Impossible d'obtenir un token", details: tokenData });
+      return res.status(400).json({ error: "Token non reçu", details: tokenData });
     }
 
-    // Récupération des infos utilisateur
+    // Récupération du profil utilisateur
     const userResponse = await fetch("https://discord.com/api/users/@me", {
       headers: { Authorization: `Bearer ${tokenData.access_token}` }
     });
     const userData = await userResponse.json();
 
-    // Envoi du suivi sur Discord
+    // Envoi du suivi dans le salon Discord
     try {
       const channel = await bot.channels.fetch(CHANNEL_ID);
       if (channel) {
         channel.send(`👮 Connexion MDT : **${userData.username}** (ID: ${userData.id}) à ${new Date().toLocaleString()}`);
       }
     } catch (err) {
-      console.error("Erreur envoi message Discord:", err);
+      console.error("Erreur envoi Discord :", err);
     }
 
-    // Retourne les infos au frontend
+    // Réponse au frontend
     res.json(userData);
 
   } catch (err) {
-    console.error(err);
-    res.status(500).send("Erreur serveur");
+    console.error("Erreur serveur :", err);
+    res.status(500).send("Erreur interne");
   }
 });
 
-// =========================
-// Lancer le serveur
-// =========================
+// Lancement du serveur
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Serveur OAuth2 lancé sur http://localhost:${PORT}`));
+app.listen(PORT, () => console.log(`✅ Serveur MDT lancé sur http://localhost:${PORT}`));
