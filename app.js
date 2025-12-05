@@ -56,7 +56,12 @@ function render(route) {
   setActive(route);
 
   if (route === 'dashboard') {
-    v.innerHTML = `<div class="card"><h3>Bienvenue dans le MDT</h3><p>Utilise la barre latérale pour naviguer.</p></div>`;
+    v.innerHTML = `
+      <div class="card">
+        <h3>Bienvenue dans le MDT</h3>
+        <p>Utilise la barre latérale pour naviguer.</p>
+      </div>
+    `;
   }
 
   if (route === 'citizens') {
