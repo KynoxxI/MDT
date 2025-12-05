@@ -84,7 +84,20 @@
     </form>
   </div>
 
-  <!-- Script principal -->
+  <!-- Config OAuth Discord côté front -->
+  <script>
+    const DISCORD_CLIENT_ID = '1445998594955022408';
+    const REDIRECT_URI = 'https://kynoxxi.github.io/MDT/'; // doit correspondre au Developer Portal
+
+    const oauthAuthorizeURL = new URL('https://discord.com/oauth2/authorize');
+    oauthAuthorizeURL.searchParams.set('client_id', DISCORD_CLIENT_ID);
+    oauthAuthorizeURL.searchParams.set('redirect_uri', REDIRECT_URI);
+    oauthAuthorizeURL.searchParams.set('response_type', 'code');
+    oauthAuthorizeURL.searchParams.set('scope', 'identify');
+
+    document.getElementById('discord-login-link').href = oauthAuthorizeURL.toString();
+  </script>
+
   <script src="app.js"></script>
 </body>
 </html>
