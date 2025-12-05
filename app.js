@@ -1,4 +1,6 @@
+// =========================
 // Variables globales
+// =========================
 let SESSION = null;
 let DB = {
   citizens: [
@@ -12,20 +14,42 @@ let DB = {
   reports: []
 };
 
+// =========================
 // Helpers
+// =========================
 function $(sel) { return document.querySelector(sel); }
+
+function roleToLabel(role) {
+  switch(role) {
+    case "officer": return "Agent";
+    case "sergeant": return "Sergent";
+    case "detective": return "Détective";
+    case "admin": return "Administrateur";
+    default: return "—";
+  }
+}
+
 function setActive(route) {
   document.querySelectorAll('.nav-item').forEach(b => {
     b.classList.toggle('active', b.dataset.route === route);
   });
 }
+
 function updateUserUI() {
   $('#user-name').textContent = SESSION ? SESSION.username : 'Invité';
   $('#user-role').textContent = SESSION ? SESSION.roleLabel : '—';
   $('.role-admin')?.classList.toggle('hidden', !(SESSION && SESSION.role === 'admin'));
 }
 
+function applySession() {
+  document.getElementById("login-screen").style.display = "none";
+  updateUserUI();
+  render("dashboard");
+}
+
+// =========================
 // Rendu des vues
+// =========================
 function render(route) {
   const v = $('#view');
   v.innerHTML = '';
@@ -110,7 +134,9 @@ function render(route) {
   }
 }
 
+// =========================
 // Gestion login
+// =========================
 function setupLogin() {
   const form = $('#login-form');
   form.addEventListener('submit', (e) => {
@@ -126,4 +152,49 @@ function setupLogin() {
   });
 
   // Discord OAuth2 simulation
-  const DISCORD_CLIENT_ID = "144599859
+  const params = new URLSearchParams(location.search);
+  const code = params.get("code");
+  const discordStatus = document.getElementById("discord-status");
+  if (code) {
+    SESSION = {
+      username: "DiscordUser",
+      role: "officer",
+      roleLabel: "Agent"
+    };
+    localStorage.setItem("MDT_SESSION", JSON.stringify(SESSION));
+    applySession();
+    if (discordStatus) discordStatus.textContent = "Connecté via Discord (simulation)";
+  } else {
+    if (discordStatus) discordStatus.textContent = "Statut: En attente — clique sur “Connexion via Discord”";
+  }
+}
+
+// =========================
+// Initialisation
+// =========================
+window.addEventListener("DOMContentLoaded", () => {
+  const saved = localStorage.getItem("MDT_SESSION");
+  if (saved) {
+    SESSION = JSON.parse(saved);
+    applySession();
+  } else {
+    setupLogin();
+  }
+
+  // Navigation
+  document.querySelectorAll(".nav-item").forEach(btn => {
+    btn.addEventListener("click", () => render(btn.dataset.route));
+  });
+
+  // Déconnexion
+  document.getElementById("logout").addEventListener("click", () => {
+    SESSION = null;
+    localStorage.removeItem("MDT_SESSION");
+    document.getElementById("login-screen").style.display = "block";
+    document.getElementById("view").innerHTML = "";
+    document.getElementById("user-name").textContent = "Invité";
+    document.getElementById("user-role").textContent = "—";
+  });
+
+  render("dashboard");
+});
